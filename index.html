@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>draw-random-tree</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  const canvas = document.getElementById('canvas')
+  const ctx = canvas.getContext('2d')
+
+  function init() {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    canvas.width = width * devicePixelRatio
+    canvas.height = height * devicePixelRatio
+    canvas.style.width = width + 'px'
+    canvas.style.height = height + 'px'
+    canvas.style.display = 'block'
+
+    ctx.fillStyle = '#778899'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // 调整canvas的坐标系
+    // 将canvas坐标系向右移动宽度的一半,向下移动高度的一倍
+    ctx.translate(canvas.width / 2, canvas.height)
+    // 将canvas坐标系沿着X轴翻转
+    ctx.scale(1, -1)
+
+    ctx.beginPath()
+    ctx.fillStyle = '#dcdcdc'
+    ctx.ellipse(0, 0, canvas.width / 2, 150, 0, 0, angle2Rad(180))
+    ctx.fill()
+  }
+
+  init()
+
+  // 将角度转为弧度
+  function angle2Rad(angle) {
+    return angle / 360 * Math.PI * 2
+  }
+
+  // 获取随机数 (min, max]
+  function getRandom(min, max) {
+    return Math.random() * (max - min) + min
+  }
+
+  /*
+  * 画一根树枝的函数
+  * start 起点的坐标
+  * thick 树干的宽度
+  * length 树干的长度
+  * angle 树干与X轴的夹角
+  * */
+  function drawTrunk(start, thick, length, angle) {
+    const [x0, y0] = start
+
+    // 当树干的粗度小于2时 停止蔓延并画出果实
+    if (thick < 2) {
+      const random = Math.random()
+      const color = random > 0.75 ? '#f08080' : '#fff'
+      ctx.beginPath()
+      ctx.fillStyle = color
+      ctx.arc(x0, y0, 8, 0, Math.PI * 2)
+      ctx.fill()
+      return
+    }
+
+    // 当粗度小于4并且满足随机条件时 停止蔓延
+    if (thick < 4 && Math.random() < .25) {
+      return
+    }
+
+    ctx.beginPath()
+    ctx.strokeStyle = '#333'
+    ctx.lineCap = 'round'
+    ctx.moveTo(x0, y0)
+    ctx.lineWidth = thick
+    // 计算终点的坐标
+    const rad = angle2Rad(angle)
+    const x1 = Math.cos(rad) * length + x0
+    const y1 = Math.sin(rad) * length + y0
+    ctx.lineTo(x1, y1)
+    ctx.stroke()
+
+    // 左侧分支
+    const angle1 = angle + getRandom(10, 40)
+    const angle2 = angle - getRandom(10, 40)
+    drawTrunk([x1, y1], thick * .8, length * .8, angle1)
+    // 右侧分支
+    drawTrunk([x1, y1], thick * .8, length * .8, angle2)
+  }
+
+  drawTrunk([0, 20], 15, 300, 90)
+</script>
+</body>
+</html>
